@@ -1,4 +1,5 @@
 ﻿using Combat;
+using Core;
 using Movement;
 using UnityEngine;
 
@@ -6,12 +7,22 @@ namespace Control
 {
     public class PlayerController : MonoBehaviour
     {
+        private Fighter _fighter;
+        private Health _health;
+        private Mover _mover;
+
+        private void Start()
+        {
+            _mover = GetComponent<Mover>();
+            _health = GetComponent<Health>();
+            _fighter = GetComponent<Fighter>();
+        }
+
         private void Update()
         {
-            if (InteractWithCombat())
-                return;
-            if (InteractWithMovement())
-                return;
+            if (_health.IsDead()) return;
+            if (InteractWithCombat()) return;
+            if (InteractWithMovement()) return;
         }
 
         private bool InteractWithCombat()
@@ -20,13 +31,11 @@ namespace Control
             foreach (var hit in hits)
             {
                 var target = hit.transform.GetComponent<CombatTarget>();
-                if (target == null)
-                    continue;
+                if (target == null) continue;
 
-                if (Input.GetMouseButtonDown(0))
-                {
-                    GetComponent<Fighter>().Attack(target);
-                }
+                if (!_fighter.CanAttack(target.gameObject)) continue;
+
+                if (Input.GetMouseButtonDown(0)) _fighter.Attack(target.gameObject);
 
                 return true;
             }
@@ -41,7 +50,7 @@ namespace Control
             if (!hasHit) return false;
             if (Input.GetMouseButton(0))
             {
-                GetComponent<Mover>().StartMoveAction(hit.point);
+                _mover.StartMoveAction(hit.point);
             }
 
             return true;
